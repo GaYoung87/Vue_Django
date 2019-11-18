@@ -5,7 +5,9 @@
       <!-- 로그인 페이지로 가게 링크를 달아줌 -->
       <router-link to="/login">Login</router-link>
     </div>
-    <router-view/>
+    <div class="container col-6">
+      <router-view/>
+    </div>
   </div>
 </template>
 
