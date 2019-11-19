@@ -818,7 +818,8 @@ urlpatterns = [
 ]
 ```
 
-3. **urls.py(todos)**
+3. **create**
+   - urls.py(todos)
 
 ```python
 from django.urls import path
@@ -826,11 +827,10 @@ from . import views
 
 urlpatterns = [
     path('todos/', views.todo_create, name='todo_create'),
-    path('todos/<int:todo_id>/', views.todo_update_delete),
 ]
 ```
 
-4. views.py
+- views.py
 
 ```python
 from django.shortcuts import render, get_object_or_404
@@ -848,7 +848,33 @@ def todo_create(request):
         serializer.save()
         # 사용자가 새롭게 작성한 데이터를 응답해준다.
         return Response(serializer.data)
+```
 
+- 그리고 나서 postman에서 확인
+
+![image-20191119141402736](C:\Users\student\AppData\Roaming\Typora\typora-user-images\image-20191119141402736.png)
+
+![image-20191119141711782](C:\Users\student\AppData\Roaming\Typora\typora-user-images\image-20191119141711782.png)
+
+- 이 토큰을 가지고 아까거기에 JWT+빈칸한칸+token붙이기![image-20191119142912347](C:\Users\student\AppData\Roaming\Typora\typora-user-images\image-20191119142912347.png)
+
+
+
+4. **update_and_delete**
+   - urls.py
+
+```python
+ path('todos/<int:todo_id>/', views.todo_update_delete),
+```
+
+- views.py
+
+```python
+from django.shortcuts import render, get_object_or_404
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .serializers import TodoSerializer
+from .models import Todo
 
 @api_view(['PUT', 'DELETE'])
 def todo_update_delete(request, todo_id):
@@ -866,9 +892,48 @@ def todo_update_delete(request, todo_id):
 ```
 
 - 그리고 나서 postman에서 확인
+- 수정확인![image-20191119144013895](C:\Users\student\AppData\Roaming\Typora\typora-user-images\image-20191119144013895.png)
 
-![image-20191119141402736](C:\Users\student\AppData\Roaming\Typora\typora-user-images\image-20191119141402736.png)
+- 삭제 확인
 
-![image-20191119141711782](C:\Users\student\AppData\Roaming\Typora\typora-user-images\image-20191119141711782.png)
+  ![image-20191119144159630](C:\Users\student\AppData\Roaming\Typora\typora-user-images\image-20191119144159630.png)
 
-- 이 토큰을 가지고 아까거기에 JWT+빈칸한칸+token붙이기![image-20191119142912347](C:\Users\student\AppData\Roaming\Typora\typora-user-images\image-20191119142912347.png)
+5. **user_detail**
+   - urls.py
+
+```python
+path('users/<int:user_id>/', views.user_detail),
+```
+
+- views.py
+
+```python
+from django.shortcuts import render, get_object_or_404
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .serializers import TodoSerializer, UserDetailSerializer
+from django.contrib.auth import get_user_model
+from .models import Todo
+
+User = get_user_model()
+
+@api_view(['GET'])
+def user_detail(request, user_id):
+   user = get_object_or_404(User, pk=user_id)
+   serializer = UserDetailSerializer(instance=user)
+   return Response(serializer.data)
+```
+
+- 그리고 나서 postman에서 확인
+
+![image-20191119151535105](C:\Users\student\AppData\Roaming\Typora\typora-user-images\image-20191119151535105.png)
+
+
+
+## Vue
+
+```bash
+student@M702 MINGW64 ~/development/Vue_Django/todo-front (master)
+$ npm i jwt-decode  # 우리가 가지고있는 token에서 필요한 정보를 빼가지고온다.
+```
+
