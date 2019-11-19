@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import datetime
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,6 +32,14 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # local apps
+    'todos',
+
+    # Third party apps
+    'rest_framework',
+    'corsheaders',
+
+    # Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,7 +48,39 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
+# jwt 관련 세팅
+# http://jpadilla.github.io/django-rest-framework-jwt/#usage
+REST_FRAMEWORK = {
+    # 로그인 여부를 확인해주는 클래스
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+
+    # 인증여부를 확인해주는 클래스
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
+
+# http://jpadilla.github.io/django-rest-framework-jwt/#additonal-settings
+JWT_AUTH = {
+    # Token을 서명할 시크릿 키를 등록(절대 외부 노출 금지!) default가 settings.py에 있는 SECRET_KEY이긴 하다.
+    'JWT_SECRET_KEY': SECRET_KEY,
+    'JWT_ALGORITHM': 'HS256',
+    'JWT_ALLOW_REFRESH': True,  # Token은 유효기간 끝날때까지 사용 가능 -> 유효기간 짧지만, 자주 최신화해서 새로운 token을 발행시킨다.
+    # 개발시에는 token을 1주일 유효하게 설정(자꾸 로그인하면 힘듦), default 유효기간은 5분
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
+    # 28일 마다 token이 갱신(유효기간 연장시)
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=28),
+    # token = access token: 받은 access token으로 우리에게 정보 요청
+    # refresh token: 사용자가 이걸 보내면 우리는 다시 access token을 준다
+}
+
 MIDDLEWARE = [
+    # https://github.com/adamchainz/django-cors-headers/#setup
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -48,6 +89,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# https://github.com/adamchainz/django-cors-headers#cors_origin_whitelist
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:8080",
+]
+
+# open_api라면 전세계 모든 곳에서 접근 가능!
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'todoback.urls'
 
@@ -118,3 +167,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# customising한 후에는 등록해줘야 사용가능. -> 앞으로 todos에 정의한 User모델을 기본 user모델로 사용
+AUTH_USER_MODEL = 'todos.User'

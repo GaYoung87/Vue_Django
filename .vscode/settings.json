@@ -1,0 +1,4 @@
+{
+    "git.ignoreLimitWarning": true,
+    "python.pythonPath": "todo-back\\venv\\Script\\python.exe"
+}
