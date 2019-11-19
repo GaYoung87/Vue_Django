@@ -8,6 +8,7 @@ class User(AbstractUser):
     pass
 
 class Todo(models.Model):
+    # user.todo_set.all() -> related_name='todos' -> user.todos.all()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=50)
     completed = models.BooleanField(default=False)
