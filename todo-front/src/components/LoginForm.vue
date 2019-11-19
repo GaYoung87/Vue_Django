@@ -31,6 +31,7 @@
 
 <script>
 import axios from 'axios'
+import router from '@/router'  // home이라는 페이지로 사용자를 보내주기 위해 router가지고온다
 
 export default {
   name: 'LoginForm',
@@ -48,13 +49,21 @@ export default {
     login() {
       if(this.checkForm()) {  // 함수가 유효한지 아닌지 알려줌
         this.loading = true  // 로그인 요청 시작하면 true
+        // http://127.0.0.1:8000
         const SERVER_IP = process.env.VUE_APP_SERVER_IP
 
 
-        axios.get(SERVER_IP, this.credentials)
+        axios.post(SERVER_IP + '/api-token-auth/', this.credentials)
           .then(response => {
-            console.log(response)
+
+            // 세션을 초기화, 사용하겠다!
+            this.$session.start()
+
+            // 응답 결과를 세션에 저장하겠다!(key, value값을 받음 -> 이 key값에 value를 저장하겠다)
+            this.$session.set('jwt', response.data.token)
+
             this.loading = false  // 로그인 요청 끝나면 false
+            router.push('/')  // home으로 보내준다
           })
           .catch(error => {
             console.error(error)
