@@ -8,7 +8,7 @@
 
 <script>
 // 1. Components 호출한다.
-import LoginForm from '@/components/LoginForm'  
+import LoginForm from '@/components/LoginForm'
 export default {
   name: 'Login',
 

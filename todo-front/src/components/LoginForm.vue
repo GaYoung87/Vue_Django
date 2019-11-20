@@ -59,6 +59,10 @@ export default {
             // 세션을 초기화, 사용하겠다!
             this.$session.start()
 
+            // vuex store를 this.$store로 접근 가능
+            // 모든 컴퍼넌트간에 공유하기 위해 vuex 사용
+            this.$store.dispatch('login', response.data.token)
+
             // 응답 결과를 세션에 저장하겠다!(key, value값을 받음 -> 이 key값에 value를 저장하겠다)
             this.$session.set('jwt', response.data.token)
 

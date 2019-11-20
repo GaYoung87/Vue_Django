@@ -6,6 +6,7 @@ import BootstrapVue from 'bootstrap-vue'
 import VueSession from 'vue-session'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+import store from './store'
 
 Vue.use(BootstrapVue)
 Vue.use(VueSession)  // 앞으로 Vue에서 Vuesession 사용할 수 있음
@@ -13,6 +14,7 @@ Vue.config.productionTip = false
 
 new Vue({
   router,
+  store,
   render: h => h(App)
 }).$mount('#app')
 

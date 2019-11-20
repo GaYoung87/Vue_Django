@@ -937,3 +937,201 @@ student@M702 MINGW64 ~/development/Vue_Django/todo-front (master)
 $ npm i jwt-decode  # 우리가 가지고있는 token에서 필요한 정보를 빼가지고온다.
 ```
 
+### 1. App.vue
+
+```vue
+<template>
+  <div id="app">
+    <div id="nav">
+      <!-- isLoggedIn 값에 따라서 조건부 렌더링 -->
+      <div v-if="isLoggedIn">
+        <router-link to="/">Home</router-link> | 
+        <!-- logout component 없음 -> logout은 하나의 기능일 뿐! -->
+        <!-- 사용자가 어디로 이동했는지에 대한 기록을 남기기 위해 logout, 아니면 href="login"을 써도 ok -->
+        <!-- 새로고침 하지 않아도 logout됨 -->
+        <!-- prevent를 사용하는 이유는 href로 redirect를 방지하기 위해 -->
+        <a @click.prevent="logout" href="/logout">Logout</a>
+      </div>
+      <div v-else>
+        <!-- 로그인 페이지로 가게 링크를 달아줌 -->
+        <router-link to="/login">Login</router-link>
+      </div>  
+      
+    </div>
+    <div class="container col-6">
+      <router-view/>
+    </div>
+  </div>
+</template>
+
+
+<script>
+import router from '@/router'
+export default {
+  name: 'App',
+
+
+  // login이 되어있으면 home, logout 보이기
+
+  data() {
+    return {
+      // 사용자의 로그인 상태 값, jwt가 있으면 true,
+      isLoggedIn: this.$session.has('jwt')
+    }
+
+  },
+
+  methods: {
+    logout() {
+      this.$session.destroy()  // 세션을 통째로 날려주겠다.
+      router.push('/login')  // 날리고 나서는 로그인 페이지로 보내라
+    }
+  },
+
+  // data에 번화가 일어나는 시점에 실행하는 함수
+  updated() {
+    this.isLoggedIn = this.$session.has('jwt')
+  }
+}
+</script>>
+
+
+
+<style>
+#app {
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
+
+#nav {
+  padding: 30px;
+}
+
+#nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+#nav a.router-link-exact-active {
+  color: #42b983;
+}
+</style>
+
+```
+
+### 2. Home.vue
+
+```vue
+<template>
+  <div class="home">
+    <h1>Todo</h1>
+    <TodoInput @createTodo="createTodo" />
+    <TodoList :todos="todos"/>
+    
+  </div>
+</template>
+
+<script>
+import axios from 'axios'
+import jwtDecode from 'jwt-decode'
+import TodoList from '@/components/TodoList'
+import TodoInput from '@/components/TodoInput'
+import router from '@/router'
+
+
+export default {
+  name: 'Home',
+
+  data() {
+    return {
+      todos: [],
+    }
+  },
+
+  // home에서 todolist 렌더링하고(호출해와서) 여기서 불러와서 보여주겠다.
+  components: {
+    TodoList,
+    TodoInput,
+  },
+
+  methods: {
+    // 사용자 로그인 유무를 확인하여 로그인 되어있지 않을 시 로그인 페이지로 보내겠다.
+    checkLoggedIn() {
+      // 1. 세션을 시작해서
+      this.$session.start()
+
+      // 2. 'jwt'가 있는지 확인하겠다.
+      if(!this.$session.has('jwt')) {  // session에 jwt라는 값이 저장되어있는지 물어봄
+        // jwt가 없다면 로그인 페이지로 보내겠다.
+        router.push('/login')
+      }
+    },
+
+    // 우리가 만든 django API서버로 todos를 달라는 요청을 보낸 뒤, todos data에 할당하는 함수
+    getTodo() {
+      
+      this.$session.start()  // 무조건 1순위
+      const token = this.$session.get('jwt')  // 이름 지어줌
+      const userId = jwtDecode(token).user_id
+
+      const SERVER_IP = process.env.VUE_APP_SERVER_IP
+
+      const options = {
+        headers: {
+          Authorization: 'JWT ' + token
+        }
+      }
+      axios.get(`${SERVER_IP}/api/v1/users/${userId}/`, options)  // http://127.0.0.1:8000/api/v1/users/1/에서 우리는 데이터를 본다.
+        .then(response => {
+          this.todos = response.data.todo_set
+        })
+        .catch(error => {
+          console.log(error)
+        })
+    },
+    createTodo(title) {
+      this.$session.start()
+      const token = this.$session.get('jwt')
+      const userId = jwtDecode(token).user_id
+      const SERVER_IP = process.env.VUE_APP_SERVER_IP
+
+      const options = {
+        headers: {
+          Authorization: 'JWT ' + token
+        }
+      }
+
+      const data = {
+        title,
+        user: userId
+      }
+
+      axios.post(`${SERVER_IP}/api/v1/todos/`, data, options)
+        .then(response => {
+          this.todos.push(response.data)
+          // console.log(response.data)
+        })
+        .catch(error => {
+          console.error(error)
+        })
+    },
+  },
+  // Vue가 화면에 그려지면 실행하는 함수
+  mounted() {
+    this.checkLoggedIn()
+    this.getTodo()
+  }
+}
+</script>
+
+<style>
+
+</style>
+```
+
+### 3. TodoList.vue
+
+### 4. TodoInput.vue

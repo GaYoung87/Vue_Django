@@ -31,17 +31,30 @@ export default {
 
   // login이 되어있으면 home, logout 보이기
 
-  data() {
-    return {
-      // 사용자의 로그인 상태 값, jwt가 있으면 true,
-      isLoggedIn: this.$session.has('jwt')
+  // data() {
+  //   return {
+  // // 사용자의 로그인 상태 값, jwt가 있으면 true,
+  //     isLoggedIn: this.$session.has('jwt')
+  //   }
+  // },
+  // store -> getters에 있는 것으로 바꾸기
+  computed: {
+    isLoggedIn() {
+      return this.$store.getters.isLoggedIn
     }
-
   },
+  // 최상위 App 컴퍼넌트가 렌더링 되면 실행하는 함수
+  mounted() {
+    if (this.$session.has('jwt')) {
+      const token = this.$session.get('jwt')
+      this.$store.dispatch('login', token)
+    }
+  }, 
 
   methods: {
     logout() {
       this.$session.destroy()  // 세션을 통째로 날려주겠다.
+      this.$store.dispatch('logout')
       router.push('/login')  // 날리고 나서는 로그인 페이지로 보내라
     }
   },
@@ -51,7 +64,7 @@ export default {
     this.isLoggedIn = this.$session.has('jwt')
   }
 }
-</script>>
+</script>
 
 
 
